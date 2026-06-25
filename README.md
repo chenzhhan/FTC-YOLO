@@ -1,20 +1,22 @@
-# 混凝土缺陷检测实验代码
+The complete code will be made public after the paper is accepted.
 
-本目录包含论文中混凝土缺陷检测实验所需的代码和数据集，包括 YOLOv8s 基线模型、本文提出的 FDEM、TAAM、CSAFM 模块、消融实验配置、训练脚本、评估脚本和数据集划分。
+# Experimental Code for Concrete Defect Detection
 
-## 环境配置
+This directory contains the code and dataset required for the concrete defect detection experiments reported in the paper, including the YOLOv8s baseline model, the proposed FDEM, TAAM, and CSAFM modules, ablation experiment configurations, training scripts, evaluation scripts, and dataset splits.
 
-建议使用 Python 3.10。完整复现 300 epoch 训练实验建议使用 CUDA GPU。
+## Environment Setup
+
+Python 3.10 is recommended. A CUDA-enabled GPU is recommended for fully reproducing the 300-epoch training experiments.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-本项目基于 Ultralytics YOLO。公开预训练权重不包含在本目录中，例如 `yolov8s.pt`、YOLOv5/YOLOv10/YOLO11 和 RT-DETR 相关权重。若机器可以联网，Ultralytics 会自动下载这些权重；若离线复现，需要提前将对应 `.pt` 权重文件放到项目根目录，或在脚本参数中改为本地权重路径。
+This project is based on Ultralytics YOLO. Publicly available pretrained weights are not included in this directory, such as `yolov8s.pt`, YOLOv5/YOLOv10/YOLO11 weights, and RT-DETR-related weights. If the machine has internet access, Ultralytics will automatically download these weights. For offline reproduction, the corresponding `.pt` weight files should be placed in the project root directory in advance, or the script arguments should be modified to use local weight paths.
 
-## 数据集
+## Dataset
 
-数据集已经包含在本目录中：
+The dataset is already included in this directory:
 
 ```text
 data/construction_defect/images/train
@@ -25,60 +27,60 @@ data/construction_defect/labels/val
 data/construction_defect/labels/test
 ```
 
-数据集配置文件为 `data/data.yaml`。当前划分包含 4,583 张训练图像、229 张验证图像和 228 张测试图像，图像与标签数量一一对应。
+The dataset configuration file is `data/data.yaml`. The current split contains 4,583 training images, 229 validation images, and 228 test images, with a one-to-one correspondence between images and labels.
 
-## 快速检查
+## Quick Checks
 
-正式训练前建议先运行：
+Before formal training, it is recommended to run:
 
 ```bash
 python scripts/test_modules.py
 python scripts/test_csafm_identity.py
 ```
 
-这两个脚本用于检查自定义模块是否可以被正确构建，以及 CSAFM 的初始化行为是否符合预期。
+These two scripts are used to check whether the custom modules can be correctly constructed and whether the initialization behavior of CSAFM is as expected.
 
-## 主要训练命令
+## Main Training Commands
 
-训练本文完整模型：
+Train the full proposed model:
 
 ```bash
 python scripts/train_custom.py --model models/yolov8s_custom.yaml --name full_model --device 0 --epochs 300 --batch 16 --patience 50
 ```
 
-训练 YOLOv8s 基线模型：
+Train the YOLOv8s baseline model:
 
 ```bash
 python scripts/train_custom.py --model models/yolov8s_baseline.yaml --name baseline --device 0 --epochs 300 --batch 16 --patience 50
 ```
 
-运行完整消融实验和对比实验队列：
+Run the complete queue of ablation experiments and comparative experiments:
 
 ```bash
 python scripts/run_ablation_queue.py --device 0 --epochs 300 --batch 16 --patience 50
 ```
 
-训练输出会保存在：
+Training outputs will be saved in:
 
 ```text
 runs/detect/<实验名称>
 ```
 
-## 评估与结果汇总
+## Evaluation and Result Summary
 
-在测试集上评估训练好的模型：
+Evaluate a trained model on the test set:
 
 ```bash
 python scripts/eval.py --weights runs/detect/full_model/weights/best.pt --split test
 ```
 
-生成消融实验汇总表：
+Generate the ablation experiment summary table:
 
 ```bash
 python scripts/aggregate_results.py --use-best
 ```
 
-输出文件会保存在：
+The output files will be saved in:
 
 ```text
 results/ablation_summary.csv
@@ -86,31 +88,31 @@ results/ablation_summary.md
 results/ablation_summary.tex
 ```
 
-生成逐类别分析：
+Generate the per-class analysis:
 
 ```bash
 python scripts/per_class_analysis.py
 ```
 
-测试推理速度：
+Benchmark the inference speed:
 
 ```bash
 python scripts/benchmark_fps.py --device 0 --precision both
 ```
 
-生成预测可视化和对比图：
+Generate prediction visualizations and comparison figures:
 
 ```bash
 python scripts/visualize.py --weights runs/detect/full_model/weights/best.pt --baseline-weights runs/detect/baseline/weights/best.pt --mode all
 ```
 
-## 可复现性说明
+## Reproducibility Notes
 
-本目录已经包含复现论文主实验所需的核心代码、模型配置和数据集划分。对方拿到本目录后，在正确安装依赖并准备好预训练权重的情况下，可以从头训练并复现实验流程。
+This directory already contains the core code, model configurations, and dataset splits required to reproduce the main experiments in the paper. After the dependencies are correctly installed and the pretrained weights are prepared, users can train the models from scratch and reproduce the experimental workflow.
 
-需要注意的是，最终数值可能会受到 GPU 型号、CUDA/cuDNN 版本、PyTorch 版本、Ultralytics 版本和随机性的影响，因此不同机器上的 mAP 可能存在小幅波动。若要求严格复现论文中的具体数值，建议使用与原实验一致的依赖版本和硬件环境。
+It should be noted that the final numerical results may be affected by the GPU model, CUDA/cuDNN version, PyTorch version, Ultralytics version, and randomness. Therefore, the mAP values may show slight fluctuations across different machines. If strict reproduction of the exact numerical results reported in the paper is required, it is recommended to use the same dependency versions and hardware environment as those used in the original experiments.
 
-本目录默认不包含已经训练完成的实验输出。如果希望对方不重新训练、直接核对论文中的表格和指标，还需要额外提供：
+By default, this directory does not include completed training outputs. If users are expected to directly verify the tables and metrics reported in the paper without retraining the models, the following files should be additionally provided:
 
 ```text
 runs/detect/<实验名称>/weights/best.pt
@@ -118,3 +120,4 @@ runs/detect/<实验名称>/results.csv
 results/ablation_summary.*
 results/fps_benchmark.csv
 ```
+
